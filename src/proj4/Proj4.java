@@ -8,11 +8,16 @@ public class Proj4 {
 	 */
 	public static void main(String[] args) {
 		
+		String[] flags = new String[3];
+		
 		int numGames = 5;
+		flags[0] = "H";
+		flags[1] = "S";
+		flags[2] = "D";
 		
 		TicTacToe Game = new TicTacToe();
 		
-		Game.play(numGames);
+		Game.play(numGames, flags);
 	}
 
 }

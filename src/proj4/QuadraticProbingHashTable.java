@@ -111,10 +111,16 @@ public class QuadraticProbingHashTable<AnyType>
      * @param x the item to search for.
      * @return the matching item.
      */
-    public boolean contains( AnyType x )
+    public AnyType contains( AnyType x )
     {
+    	AnyType element = null;
         int currentPos = findPos( x );
-        return isActive( currentPos );
+        
+        if (isActive( currentPos )) {
+        	element = array[ currentPos ].element;
+        }
+        
+        return element;
     }
 
     /**
@@ -165,7 +171,7 @@ public class QuadraticProbingHashTable<AnyType>
         }
     }
 
-    private static final int DEFAULT_TABLE_SIZE = 11;
+    private static final int DEFAULT_TABLE_SIZE = 101;
 
     private HashEntry<AnyType> [ ] array; // The array of elements
     private int currentSize;              // The number of occupied cells
@@ -220,7 +226,7 @@ public class QuadraticProbingHashTable<AnyType>
         return true;
     }
 
-
+    /*
     // Simple main
     public static void main( String [ ] args )
     {
@@ -246,6 +252,6 @@ public class QuadraticProbingHashTable<AnyType>
             if( H.contains( ""+i ) )
                 System.out.println( "OOPS!!! " +  i  );
         }
-    }
-
+    }  
+    */
 }

@@ -148,6 +148,7 @@ public class QuadraticProbingHashTable<AnyType>
         int hashVal = x.hashCode( );
 
         hashVal %= array.length;
+    	
         if( hashVal < 0 )
             hashVal += array.length;
 

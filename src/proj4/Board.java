@@ -20,6 +20,17 @@ public class Board {
 	public double Probability;
 	public int Played;
 	
+	public void setStats (int played, int wins, int losses) {
+		 
+		Played = played;
+		Wins = wins;
+		Losses = losses;
+		Ties = played - (wins + losses);
+		
+		Probability = ((double)Wins / (double)Played)*100;
+		
+	}
+	
 	public void updateProb(String WLT) {
 		 
 		if (WLT == "win") {
@@ -35,9 +46,9 @@ public class Board {
 			//invalid string passed
 		}
 		
-		Played = Wins + Losses + Ties;
+		Played = Wins + Losses;
 		
-		Probability = Wins / Played;
+		Probability = ((double)Wins / (double)Played)*100;
 		
 	}
 }

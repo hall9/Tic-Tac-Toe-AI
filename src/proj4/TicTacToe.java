@@ -1,14 +1,23 @@
 package proj4;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.text.DecimalFormat;
 import java.util.*;
-import proj4.QuadraticProbingHashTable;
+
+import HashTable.HashTable;
+import HashTable.ModuloAddressCalculator;
+import HashTable.QuadraticCollisionResolver;
 import proj4.Board;
 
 public class TicTacToe {
 
 	/* prime Numbers for Heap Size
-	 * 
-	 *  20011  - if only just above 20k is needed
-	 * 	29303  - If 80% of the heap has always be open
 	 * 
 	 *  In the Tic-Tac-Toe Array:
 	 *  ----------------------------
@@ -17,10 +26,13 @@ public class TicTacToe {
 	 * 	  Empty = 00
 	*/
 	
-	private QuadraticProbingHashTable<Board> DictionaryOfBoards = new QuadraticProbingHashTable<Board>( );
+	private HashTable DictionaryOfBoards;
 	LinkedList<Board> HashedBoards = new LinkedList<Board>();
 	LinkedList<Board> NotHashedBoards = new LinkedList<Board>();
+	LinkedList<Board> Hashing = new LinkedList<Board>();
+	LinkedList<Board> HashedPlayed = new LinkedList<Board>();
 	int[][] CurrentGameBoard = new int[3][3];
+	Board FavoriteFirstMove;
 	
 	int played;
 	int ties;
@@ -29,84 +41,95 @@ public class TicTacToe {
 	double AIWinPercentage;
 	double DumbWinPercentage;
 	
-	public void play (int games, String[] flags) {
+	int hashSlots;
+	int hashEntries;
+	int hashCollisions;
+	double hashPerFull;
+	
+	public void play (int games, String[] flags) throws IOException {
 		
-		boolean H = (flags[0].equals("H")) ? true : false; 
-		boolean S = (flags[0].equals("S")) ? true : false;
-		boolean D = (flags[0].equals("D")) ? true : false;
+		boolean H = (Arrays.asList(flags).contains("h")) ? true : false; 
+		boolean S = (Arrays.asList(flags).contains("s")) ? true : false; 
+		//boolean D = (Arrays.asList(flags).contains("d")) ? true : false;
+		
+		hashSlots = 2017;
+		hashEntries = 0;
+		hashCollisions = 0;
+		
+		DictionaryOfBoards = new HashTable(new ModuloAddressCalculator(hashSlots), new QuadraticCollisionResolver(), hashSlots);
 		
 		played = 0;
 		ties = 0;
 		wins = 0;
 		losses = 0;
-		AIWinPercentage = 0.0;
-		DumbWinPercentage = 0.0;
 		DictionaryOfBoards.makeEmpty();
+		
+		if (S) {
+			fileManagerGrab();
+		}
 		
 		for (int i = 0; i < games; i++ ) {
 			newGame();
 			
-			System.out.println("Game Nr: " + (i + 1));
 			String WLT = playing(1,H);
-			updateStats(WLT);
+			updateStats(H, WLT);
 			
+			while (!Hashing.isEmpty()) {
+				Board NewlyHashed = Hashing.remove();
+				NewlyHashed.updateProb(WLT);
+				DictionaryOfBoards.addNode(NewlyHashed.Serial, NewlyHashed);
+				hashEntries += 1;
+				hashPerFull = ( (double)hashEntries / (double)hashSlots ) * 100;
+			}
+			
+			
+			for (int u = 0; u < HashedPlayed.size(); u++) {
+				Board playedBefore = HashedPlayed.remove();
+				playedBefore.updateProb(WLT);
+				//DictionaryOfBoards.removeNode(playedBefore.Serial, playedBefore);
+			}
+			
+			/*
+			while (!HashedPlayed.isEmpty()) {
+				Board playedHashed = HashedPlayed.remove();
+				DictionaryOfBoards.addNode(playedHashed.Serial, playedHashed);
+			}
+			*/
 		}
 		
-		
-	}
-	
-	 
-	
-	private void updateStats(String WLT) {
-		 
-		if (WLT == "win") {
-			wins += 1;
-			System.out.println("The game has been won by O");
+		DictionaryOfBoards.findElement(FavoriteFirstMove.Serial);
+		if (S) {
+			fileManagerDump();
 		}
-		else if (WLT == "lost") {
-			losses += 1;
-			System.out.println("The game has been won by X");
-		}
-		else if (WLT == "tie") {
-			ties += 1;
-			System.out.println("The game ended with a draw");
-		}
-		else {
-			//invalid string passed
-		}
+		finalReport();
 		
-		played = wins + losses + ties;
-		
-		AIWinPercentage = wins / played;
-		DumbWinPercentage = losses / played;
-		
-		System.out.println("Smart 'O' player has won " + wins + " times.");
-		System.out.println("Random 'X' Player has won " + losses + " times.");
-		System.out.println("");
-		System.out.println("");
 	}
 	
 	private String playing (int n, boolean H) {
 
 		if (n % 2 == 0) {
 			Board AIBoard = AITurn();
-			System.out.println("The learning player (O) just moved:");
-			printBoard();
 
 			if (AIBoard.Played > 0 ) {
-				System.out.println("In the past, this move has led us to a win " + AIBoard.Probability + " of the time.");
+				printEachMove(H, n,AIBoard.Probability);
+				HashedPlayed.add(AIBoard);
 			}
 			else {
-				System.out.println("The move is new and was chosen at random.");
+				printEachMove (H, n,-1);
+				Hashing.add(AIBoard);
 			}
 			
-			System.out.println("");
+			if (n == 2 && FavoriteFirstMove == null) {
+				FavoriteFirstMove = AIBoard;
+			}
+			else if (n == 2 && FavoriteFirstMove.Played < AIBoard.Played) {
+				FavoriteFirstMove = AIBoard;
+			}
+			
 		}
 		else {
 			dumbTurn();
-			System.out.println("The random player (X) just moved: ");
-			printBoard();
-			System.out.println("");
+			printEachMove (H, n,-1);
 		}
 
 		String WLT = "";
@@ -131,11 +154,80 @@ public class TicTacToe {
 		
 		return WLT;
 	}
+	 
+	private void updateStats(boolean H, String WLT) {
+		 
+		if (WLT == "win") {
+			wins += 1;
+			if (H) {
+				System.out.println("The game has been won by O");
+			}
+		}
+		else if (WLT == "lost") {
+			losses += 1;
+			if (H) {
+				System.out.println("The game has been won by X");
+			}
+		}
+		else if (WLT == "tie") {
+			ties += 1;
+			if (H) {
+				System.out.println("The game ended with a draw");
+			}
+		}
+		else {
+			//invalid string passed
+		}
+		
+		played = wins + losses + ties;
+		
+		AIWinPercentage = ((double)wins / (double)played)*100;
+		DumbWinPercentage = ((double)losses / (double)played)*100;
+		
+		if (H) {
+			System.out.println("Smart 'O' player has won " + wins + " times.");
+			System.out.println("Random 'X' Player has won " + losses + " times.");
+			System.out.println("Ties: " + ties);
+			System.out.println("");
+		}
+	}
 	
-	private void printBoard () {
+	private void printEachMove (boolean H, int n, double Probability ) {
+		if (H) {
+			if (n == 1) {
+				System.out.println("Game Nr: " + (played + 1));
+			}
+
+			if (n % 2 == 0) {
+				System.out.println("The learning player (O) just moved:");
+				printBoard ();
+
+				if (Probability != -1) {
+					DecimalFormat fmtObj = new DecimalFormat("##0.00");
+					System.out.println("In the past, this move has led us to a win " + fmtObj.format(Probability) + " of the time.");
+				}
+				else {
+					System.out.println("The move is new and was chosen at random.");
+				}
+			}
+			else {
+				System.out.println("The random player (X) just moved: ");
+				printBoard();
+			}
+
+			System.out.println("");
+		}
+	}
+	
+	public void printBoard () {
+		printBoard (CurrentGameBoard);
+	}
+	
+	private void printBoard (int[][] GameBoard) {
+		
 		for (int i = 0; i < 3; i++) {
 			for (int k = 0; k < 3; k++) {
-				int serialMark = CurrentGameBoard[i][k];
+				int serialMark = GameBoard[i][k];
 				String readMark = ".";
 				if (serialMark == 1) {
 					readMark = "X";
@@ -149,6 +241,28 @@ public class TicTacToe {
 			}
 			System.out.println("");
 		}
+	}
+	
+	private void finalReport () {
+		
+		DecimalFormat fmtObj = new DecimalFormat("####0.00");
+		
+		System.out.println("*************************");
+		System.out.println("");
+		System.out.println("FINAL REPORT:");
+		System.out.println("");
+		System.out.println("The number of slots is: " + hashSlots);
+		System.out.println("The number of entries is: " + hashEntries);
+		System.out.println("The % full is: " + fmtObj.format(hashPerFull));
+		System.out.println("The number of collisions is: " +  DictionaryOfBoards.getNumCollisions());
+		System.out.println("Played: " + played);
+		System.out.println("Smart player has won " + wins + " times which is " + fmtObj.format(AIWinPercentage) + "%");
+		System.out.println("Random has won " + losses + " times which is " + fmtObj.format(DumbWinPercentage) + "%");
+		System.out.println("My favorite first move is:");
+		printBoard(FavoriteFirstMove.GameState);
+		System.out.println("Won "+ FavoriteFirstMove.Wins + " out of " + FavoriteFirstMove.Played + " which is " + fmtObj.format(FavoriteFirstMove.Probability) + "%");
+		System.out.println("");
+		System.out.println("");
 	}
 	
 	private Board AITurn () {
@@ -170,23 +284,74 @@ public class TicTacToe {
 		Board BestMove = nextBestMove();
 		CurrentGameBoard = deepCopy(BestMove.GameState);
 		
-		
 		return BestMove;
 	}
 	
 	private Board nextBestMove () {
 		Board BestMove = null;
+		int HashedNum = HashedBoards.size();
+		int NonHashedNum = NotHashedBoards.size();
+		int TotSpotsOpen = HashedNum + NonHashedNum;
 		
 		if (HashedBoards.isEmpty()) {
-			int numSpots = NotHashedBoards.size();
-			int randomIndex = randomSpot((numSpots == 1) ? 1 : numSpots -1);
+			int numSpots = NonHashedNum;
+			int randomIndex = randomSpot((numSpots == 1) ? 1 : numSpots);
 			BestMove = NotHashedBoards.get(randomIndex);
+		}
+		else if (NotHashedBoards.isEmpty())  {
+			for (int i = 0; i < HashedNum; i++) {
+				if (BestMove == null) {
+					BestMove = HashedBoards.get(0);
+				}
+				else if  (BestMove.Losses >= HashedBoards.get(i).Losses ) {
+					if (BestMove.Losses == HashedBoards.get(i).Losses) {
+						if (BestMove.Probability < HashedBoards.get(i).Probability) {
+							BestMove = HashedBoards.get(i);
+						}
+					}
+					else {
+						BestMove = HashedBoards.get(i);
+					}
+				}
+			}
 		}
 		else {
 			
+			boolean AllZero = true;
+			
+			for (int z = 0; z < HashedNum; z++) {
+				if (HashedBoards.get(z).Probability > 0) {
+					AllZero = false;
+				}
+			}
+			
+			if (AllZero) {
+				int numSpots = NonHashedNum;
+				int randomIndex = randomSpot((numSpots == 1) ? 1 : numSpots);
+				BestMove = NotHashedBoards.get(randomIndex);
+			}
+			else {
+				
+				Board Highprob = HashedBoards.get(0);
+				
+				for (int z = 0; z < HashedNum; z++) {
+					if (Highprob.Probability < HashedBoards.get(z).Probability ) {
+						Highprob = HashedBoards.get(z);
+					}
+				}
+				
+				double minimumProbability = ((double)HashedNum /( double)TotSpotsOpen) * 100;
+				
+				if (minimumProbability > Highprob.Probability ) {
+					int numSpots = NonHashedNum;
+					int randomIndex = randomSpot((numSpots == 1) ? 1 : numSpots);
+					BestMove = NotHashedBoards.get(randomIndex);
+				}
+				else {
+					BestMove = Highprob;
+				}
+			}
 		}
-		
-		
 		
 		return BestMove; 
 	}
@@ -197,9 +362,10 @@ public class TicTacToe {
 		
 		for (int i = 0; i < CheckedMoves.size(); i++) {
 			Board gameBoard = CheckedMoves.get(i);
-			Board HashedBoard = DictionaryOfBoards.contains(gameBoard);
+			Board HashedBoard = (Board) DictionaryOfBoards.findElement(gameBoard.Serial);
 			
 			if (HashedBoard != null) {
+				HashedBoard.GameState = gameBoard.GameState;
 				HashedBoards.add(HashedBoard);
 			}
 			else {
@@ -214,7 +380,7 @@ public class TicTacToe {
 		
 		AvaibleSpots = availableMoves(AvaibleSpots);
 		int numAvaibleSpots = AvaibleSpots.size();
-		int randomIndex = randomSpot((numAvaibleSpots == 1) ? 1 : numAvaibleSpots -1 ); 
+		int randomIndex = randomSpot((numAvaibleSpots == 1) ? 1 : numAvaibleSpots); 
 		Location = AvaibleSpots.get(randomIndex);
 		
 		CurrentGameBoard[Location[0]][Location[1]] = 1;
@@ -278,11 +444,11 @@ public class TicTacToe {
 		return potentialMoves;
 	}
 	
-	private long findCommonBoard ( int[][] aMove) {
+	private int findCommonBoard ( int[][] aMove) {
 		LinkedList<int[][]> SymmetryMoves = new LinkedList<int[][]>();
 		
-		long lowestSerial = 174678;
-		long tempSerial = 0;
+		int lowestSerial = 174678;
+		int tempSerial = 0;
 		
 		SymmetryMoves = findSymmetry(aMove);
 		
@@ -298,7 +464,7 @@ public class TicTacToe {
 		return lowestSerial;
 	}
 	
-	private long serialize (int board[][]) {
+	private int serialize (int board[][]) {
 		String serial = "";
 		String tempString = "";
 		int[][] temp = new int[3][3];
@@ -443,6 +609,63 @@ public class TicTacToe {
 		return newArray;
 	}
 	
+	private void fileManagerGrab () throws IOException {
+		File f;
+		f = new File("configs.txt");
+		if(!f.exists()){
+			f.createNewFile();
+		}
+		
+		BufferedReader r;
+		Scanner in = null;
+		try {
+			r = new BufferedReader(new FileReader("configs.txt"));
+			in = new Scanner(r);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		while(in.hasNext()) {
+			Board board = new Board(in.nextInt(), null);
+			board.setStats(in.nextInt(), in.nextInt(), in.nextInt());
+			DictionaryOfBoards.addNode(board.Serial, board);
+			hashEntries += 1;
+		}
+	}
 	
-	
+	private void fileManagerDump () throws IOException {
+		File f;
+
+		f = new File("configs.txt");
+
+		if(!f.exists()){
+			System.out.println("New file \"configs.txt\" has been created to the current directory");
+		}
+		else {
+			System.out.println("File \"configs.txt\" already exists in the current directory");
+		}
+
+		System.out.println("Writing to file \"configs.txt\" please wait....");
+
+		try{
+			Writer output = null;
+			File file = new File("configs.txt");
+			output = new BufferedWriter(new FileWriter(file));
+
+			for (int i = 0; i < hashEntries; i++) {
+				Board boardToWrite = (Board) DictionaryOfBoards.getNexttoDump();
+				if (boardToWrite != null ) {
+					output.write(boardToWrite.Serial + " " + boardToWrite.Played + " " + boardToWrite.Wins + " " + boardToWrite.Losses + " ");
+				}
+			}
+			
+		output.close();
+		
+		}catch (Exception e){ //Catch exception if any
+			System.err.println("Error: " + e.getMessage());
+		}
+
+		System.out.println("Done Writing to \"configs.txt\"");
+	}
+
 }

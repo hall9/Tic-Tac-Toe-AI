@@ -6,10 +6,9 @@ public class QuadraticCollisionResolver implements CollisionResolver {
 	}
 	
 	public int recalculateAddress(int collided, int previousAddress, int range)
-	{	/*				
-		return previousAddress + (int)Math.pow(collided, 2.0);
-		*/
+	{				
+		//return (previousAddress + collided) % range;
 		
-		return (previousAddress + collided) % range;
+		return (int) (( previousAddress + Math.pow(collided, 2.0) ) % range);
 	}
 }

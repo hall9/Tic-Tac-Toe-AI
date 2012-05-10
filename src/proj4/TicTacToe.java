@@ -34,12 +34,13 @@ public class TicTacToe {
 	int[][] CurrentGameBoard = new int[3][3];
 	Board FavoriteFirstMove;
 	
-	int played;
+	int Played;
 	int ties;
 	int wins;
 	int losses;
 	double AIWinPercentage;
 	double DumbWinPercentage;
+	boolean P;
 	
 	int hashSlots;
 	int hashEntries;
@@ -50,15 +51,16 @@ public class TicTacToe {
 		
 		boolean H = (Arrays.asList(flags).contains("h")) ? true : false; 
 		boolean S = (Arrays.asList(flags).contains("s")) ? true : false; 
-		//boolean D = (Arrays.asList(flags).contains("d")) ? true : false;
+		boolean D = (Arrays.asList(flags).contains("d")) ? true : false;
+		P = (Arrays.asList(flags).contains("P")) ? true : false;
 		
-		hashSlots = 2017;
+		hashSlots = 6967;
 		hashEntries = 0;
 		hashCollisions = 0;
 		
 		DictionaryOfBoards = new HashTable(new ModuloAddressCalculator(hashSlots), new QuadraticCollisionResolver(), hashSlots);
 		
-		played = 0;
+		Played = 0;
 		ties = 0;
 		wins = 0;
 		losses = 0;
@@ -67,6 +69,8 @@ public class TicTacToe {
 		if (S) {
 			fileManagerGrab();
 		}
+		
+		System.out.println("Let the Games Begin!! (It may take up to 15 seconds to display the FINAL REPORT)");
 		
 		for (int i = 0; i < games; i++ ) {
 			newGame();
@@ -77,24 +81,20 @@ public class TicTacToe {
 			while (!Hashing.isEmpty()) {
 				Board NewlyHashed = Hashing.remove();
 				NewlyHashed.updateProb(WLT);
-				DictionaryOfBoards.addNode(NewlyHashed.Serial, NewlyHashed);
-				hashEntries += 1;
-				hashPerFull = ( (double)hashEntries / (double)hashSlots ) * 100;
+					DictionaryOfBoards.addNode(NewlyHashed.Serial, NewlyHashed);
+					hashEntries++;
 			}
 			
 			
 			for (int u = 0; u < HashedPlayed.size(); u++) {
-				Board playedBefore = HashedPlayed.remove();
+				Board playedBefore = HashedPlayed.get(u);
 				playedBefore.updateProb(WLT);
-				//DictionaryOfBoards.removeNode(playedBefore.Serial, playedBefore);
 			}
 			
-			/*
 			while (!HashedPlayed.isEmpty()) {
 				Board playedHashed = HashedPlayed.remove();
-				DictionaryOfBoards.addNode(playedHashed.Serial, playedHashed);
+				DictionaryOfBoards.setNode(playedHashed.Serial, playedHashed);
 			}
-			*/
 		}
 		
 		DictionaryOfBoards.findElement(FavoriteFirstMove.Serial);
@@ -107,15 +107,15 @@ public class TicTacToe {
 	
 	private String playing (int n, boolean H) {
 
-		if (n % 2 == 0) {
+		if ( n % 2 == 0 ) {
 			Board AIBoard = AITurn();
 
 			if (AIBoard.Played > 0 ) {
-				printEachMove(H, n,AIBoard.Probability);
+				printEachMove(H, n,AIBoard.Played, AIBoard.Probability);
 				HashedPlayed.add(AIBoard);
 			}
 			else {
-				printEachMove (H, n,-1);
+				printEachMove (H, n, 0, 0.0);
 				Hashing.add(AIBoard);
 			}
 			
@@ -129,10 +129,10 @@ public class TicTacToe {
 		}
 		else {
 			dumbTurn();
-			printEachMove (H, n,-1);
+			printEachMove (H, n, 0, 0.0);
 		}
 
-		String WLT = "";
+		String WLT = "null";
 		int isGameOver = gameOver();
 		
 		if (isGameOver == 0){
@@ -148,7 +148,7 @@ public class TicTacToe {
 			// O wins
 			WLT = "win";
 		}
-		else {
+		else  if (isGameOver == -1){
 			WLT = playing(n+1, H);
 		}
 		
@@ -158,19 +158,19 @@ public class TicTacToe {
 	private void updateStats(boolean H, String WLT) {
 		 
 		if (WLT == "win") {
-			wins += 1;
+			wins++;
 			if (H) {
 				System.out.println("The game has been won by O");
 			}
 		}
 		else if (WLT == "lost") {
-			losses += 1;
+			losses++;
 			if (H) {
 				System.out.println("The game has been won by X");
 			}
 		}
 		else if (WLT == "tie") {
-			ties += 1;
+			ties++;
 			if (H) {
 				System.out.println("The game ended with a draw");
 			}
@@ -179,10 +179,13 @@ public class TicTacToe {
 			//invalid string passed
 		}
 		
-		played = wins + losses + ties;
+		Played = wins + losses + ties;
 		
-		AIWinPercentage = ((double)wins / (double)played)*100;
-		DumbWinPercentage = ((double)losses / (double)played)*100;
+		double winRatio = ( (double) wins / (double) Played );
+		double lostRatio = ( (double) losses / (double) Played );
+		
+		AIWinPercentage = winRatio * 100;
+		DumbWinPercentage = lostRatio * 100;
 		
 		if (H) {
 			System.out.println("Smart 'O' player has won " + wins + " times.");
@@ -192,17 +195,17 @@ public class TicTacToe {
 		}
 	}
 	
-	private void printEachMove (boolean H, int n, double Probability ) {
+	private void printEachMove (boolean H, int n, int played, double Probability) {
 		if (H) {
 			if (n == 1) {
-				System.out.println("Game Nr: " + (played + 1));
+				System.out.println("Game Nr: " + (Played + 1));
 			}
 
 			if (n % 2 == 0) {
 				System.out.println("The learning player (O) just moved:");
 				printBoard ();
 
-				if (Probability != -1) {
+				if (played > 0) {
 					DecimalFormat fmtObj = new DecimalFormat("##0.00");
 					System.out.println("In the past, this move has led us to a win " + fmtObj.format(Probability) + " of the time.");
 				}
@@ -247,6 +250,13 @@ public class TicTacToe {
 		
 		DecimalFormat fmtObj = new DecimalFormat("####0.00");
 		
+		double tiePercentage = 0.00;
+		double tieRatio = ( (double) ties / (double) Played );
+		
+		tiePercentage = tieRatio * 100;
+		
+		hashPerFull = ( (double)hashEntries / (double)hashSlots ) * 100;
+		
 		System.out.println("*************************");
 		System.out.println("");
 		System.out.println("FINAL REPORT:");
@@ -255,9 +265,10 @@ public class TicTacToe {
 		System.out.println("The number of entries is: " + hashEntries);
 		System.out.println("The % full is: " + fmtObj.format(hashPerFull));
 		System.out.println("The number of collisions is: " +  DictionaryOfBoards.getNumCollisions());
-		System.out.println("Played: " + played);
+		System.out.println("Played: " + Played);
 		System.out.println("Smart player has won " + wins + " times which is " + fmtObj.format(AIWinPercentage) + "%");
 		System.out.println("Random has won " + losses + " times which is " + fmtObj.format(DumbWinPercentage) + "%");
+		System.out.println("Draws " + ties + " times which is " + fmtObj.format(tiePercentage) + "%");
 		System.out.println("My favorite first move is:");
 		printBoard(FavoriteFirstMove.GameState);
 		System.out.println("Won "+ FavoriteFirstMove.Wins + " out of " + FavoriteFirstMove.Played + " which is " + fmtObj.format(FavoriteFirstMove.Probability) + "%");
@@ -271,7 +282,7 @@ public class TicTacToe {
 		
 		possibleMoves = potentialMoves(possibleMoves);
 		
-		for (int i = 0; i < possibleMoves.size() - 1; i++) {
+		for (int i = 0; i < possibleMoves.size(); i++) {
 			Board gameBoard;
 			int[][] gameBoardSate = new int[3][3];
 			
@@ -288,68 +299,64 @@ public class TicTacToe {
 	}
 	
 	private Board nextBestMove () {
-		Board BestMove = null;
+		Board BestMove = new Board(0, null);
 		int HashedNum = HashedBoards.size();
 		int NonHashedNum = NotHashedBoards.size();
-		int TotSpotsOpen = HashedNum + NonHashedNum;
+		double minimumProbability = 60.00;
 		
 		if (HashedBoards.isEmpty()) {
 			int numSpots = NonHashedNum;
-			int randomIndex = randomSpot((numSpots == 1) ? 1 : numSpots);
+			int randomIndex = randomNumber((numSpots == 1) ? 1 : numSpots);
 			BestMove = NotHashedBoards.get(randomIndex);
 		}
-		else if (NotHashedBoards.isEmpty())  {
+		else if (!HashedBoards.isEmpty() && NotHashedBoards.isEmpty()) {
+			// All moves have been seen(hashed)
+			
+			BestMove = HashedBoards.get(0);
+			
 			for (int i = 0; i < HashedNum; i++) {
-				if (BestMove == null) {
-					BestMove = HashedBoards.get(0);
+				if  ( BestMove.Probability < HashedBoards.get(i).Probability ) {
+					BestMove = HashedBoards.get(i);
 				}
-				else if  (BestMove.Losses >= HashedBoards.get(i).Losses ) {
-					if (BestMove.Losses == HashedBoards.get(i).Losses) {
-						if (BestMove.Probability < HashedBoards.get(i).Probability) {
-							BestMove = HashedBoards.get(i);
-						}
-					}
-					else {
+				else if ( BestMove.Probability == HashedBoards.get(i).Probability ) {
+					if ( BestMove.Weight > HashedBoards.get(i).Weight) {
 						BestMove = HashedBoards.get(i);
 					}
 				}
 			}
-		}
-		else {
 			
-			boolean AllZero = true;
-			
-			for (int z = 0; z < HashedNum; z++) {
-				if (HashedBoards.get(z).Probability > 0) {
-					AllZero = false;
-				}
-			}
-			
-			if (AllZero) {
-				int numSpots = NonHashedNum;
-				int randomIndex = randomSpot((numSpots == 1) ? 1 : numSpots);
-				BestMove = NotHashedBoards.get(randomIndex);
-			}
-			else {
-				
-				Board Highprob = HashedBoards.get(0);
-				
-				for (int z = 0; z < HashedNum; z++) {
-					if (Highprob.Probability < HashedBoards.get(z).Probability ) {
-						Highprob = HashedBoards.get(z);
+			if (minimumProbability >= BestMove.Probability) {
+				for (int t = 0; t < HashedNum; t++) {
+					if ( BestMove.Weight > HashedBoards.get(t).Weight) {
+						BestMove = HashedBoards.get(t);
+					}
+					else if ( BestMove.Weight == HashedBoards.get(t).Weight) {
+						if ( BestMove.Probability < HashedBoards.get(t).Probability) {
+							BestMove = HashedBoards.get(t);
+						}
 					}
 				}
-				
-				double minimumProbability = ((double)HashedNum /( double)TotSpotsOpen) * 100;
-				
-				if (minimumProbability > Highprob.Probability ) {
-					int numSpots = NonHashedNum;
-					int randomIndex = randomSpot((numSpots == 1) ? 1 : numSpots);
-					BestMove = NotHashedBoards.get(randomIndex);
+			}
+		}
+		else if (!HashedBoards.isEmpty() && !NotHashedBoards.isEmpty()) {
+			// Some moves have not been seen(hashed)
+			BestMove = HashedBoards.get(0);
+			
+			for (int i = 0; i < HashedNum; i++) {
+				if  ( BestMove.Probability < HashedBoards.get(i).Probability ) {
+					BestMove = HashedBoards.get(i);
 				}
-				else {
-					BestMove = Highprob;
+				else if ( BestMove.Probability == HashedBoards.get(i).Probability ) {
+					if ( BestMove.Weight > HashedBoards.get(i).Weight) {
+						BestMove = HashedBoards.get(i);
+					}
 				}
+			}
+			
+			if (minimumProbability > BestMove.Probability) {
+				int numSpots = NonHashedNum;
+				int randomIndex = randomNumber((numSpots == 1) ? 1 : numSpots);
+				BestMove = NotHashedBoards.get(randomIndex);
 			}
 		}
 		
@@ -366,6 +373,10 @@ public class TicTacToe {
 			
 			if (HashedBoard != null) {
 				HashedBoard.GameState = gameBoard.GameState;
+				if (P) {
+				System.out.println("Potential Moves (found in hashed) =  serializedBoard:" + HashedBoard.Serial + "  %P:" + HashedBoard.Probability + " Wins:" + HashedBoard.Wins + " Ties:" + HashedBoard.Ties + " Losses:" + HashedBoard.Losses + " P:" + HashedBoard.Played + " Weight:" + HashedBoard.Weight );
+				}
+				
 				HashedBoards.add(HashedBoard);
 			}
 			else {
@@ -380,13 +391,13 @@ public class TicTacToe {
 		
 		AvaibleSpots = availableMoves(AvaibleSpots);
 		int numAvaibleSpots = AvaibleSpots.size();
-		int randomIndex = randomSpot((numAvaibleSpots == 1) ? 1 : numAvaibleSpots); 
+		int randomIndex = randomNumber((numAvaibleSpots == 1) ? 1 : numAvaibleSpots); 
 		Location = AvaibleSpots.get(randomIndex);
 		
 		CurrentGameBoard[Location[0]][Location[1]] = 1;
 	}
 	
-	private int randomSpot (int n) {
+	private int randomNumber (int n) {
 		Random generator = new Random();
 		
 		int randomIndex = generator.nextInt( n );
@@ -444,11 +455,11 @@ public class TicTacToe {
 		return potentialMoves;
 	}
 	
-	private int findCommonBoard ( int[][] aMove) {
+	private long findCommonBoard ( int[][] aMove) {
 		LinkedList<int[][]> SymmetryMoves = new LinkedList<int[][]>();
 		
-		int lowestSerial = 174678;
-		int tempSerial = 0;
+		long lowestSerial = 174678;
+		long tempSerial = 0;
 		
 		SymmetryMoves = findSymmetry(aMove);
 		
@@ -461,6 +472,7 @@ public class TicTacToe {
 			}
 		}
 		
+		//System.out.println(" Lowiest " + lowestSerial);
 		return lowestSerial;
 	}
 	
@@ -485,7 +497,15 @@ public class TicTacToe {
 				}
 			}
 		}
-		
+		/*
+		System.out.println("*");
+		printBoard(board);
+		System.out.println("");
+		System.out.println(serial);
+		System.out.println(Integer.parseInt(serial, 2));
+		System.out.println("*");
+		System.out.println("");
+		*/
 		return Integer.parseInt(serial, 2);
 	}
 	
@@ -550,41 +570,46 @@ public class TicTacToe {
 		}
 	}
 	
-	private int gameOver () {
+	
+	private int gameOver() {
+		return gameOver(CurrentGameBoard);
+	}
+	
+	private int gameOver (int[][] gameBoardSate) {
 		
 		int winner = -1;
 		
-		if ( CurrentGameBoard[0][0] == CurrentGameBoard[0][1] && CurrentGameBoard[0][0] == CurrentGameBoard[0][2] &&  CurrentGameBoard[0][0] != 0) {
+		if ( gameBoardSate[0][0] == gameBoardSate[0][1] && gameBoardSate[0][0] == gameBoardSate[0][2] &&  gameBoardSate[0][0] != 0) {
 			// Found a win: A cross the Top
-			winner = CurrentGameBoard[0][0];
+			winner = gameBoardSate[0][0];
 		}
-		else if ( CurrentGameBoard[1][0] == CurrentGameBoard[1][1] && CurrentGameBoard[1][0] == CurrentGameBoard[1][2] &&  CurrentGameBoard[1][0] != 0 ) {
+		else if ( gameBoardSate[1][0] == gameBoardSate[1][1] && gameBoardSate[1][0] == gameBoardSate[1][2] &&  gameBoardSate[1][0] != 0 ) {
 			// Found a win: A cross the Middle
-			winner = CurrentGameBoard[1][0];
+			winner = gameBoardSate[1][0];
 		}
-		else if ( CurrentGameBoard[2][0] == CurrentGameBoard[2][1] && CurrentGameBoard[2][0] == CurrentGameBoard[2][2] &&  CurrentGameBoard[2][0] != 0 ) {
+		else if ( gameBoardSate[2][0] == gameBoardSate[2][1] && gameBoardSate[2][0] == gameBoardSate[2][2] &&  gameBoardSate[2][0] != 0 ) {
 			// Found a win: A cross the Bottom
-			winner = CurrentGameBoard[2][0];
+			winner = gameBoardSate[2][0];
 		}
-		else if ( CurrentGameBoard[0][0] == CurrentGameBoard[1][0] && CurrentGameBoard[0][0] == CurrentGameBoard[2][0]  &&  CurrentGameBoard[0][0] != 0) {
+		else if ( gameBoardSate[0][0] == gameBoardSate[1][0] && gameBoardSate[0][0] == gameBoardSate[2][0]  &&  gameBoardSate[0][0] != 0) {
 			// Found a win: Down the left
-			winner = CurrentGameBoard[0][0];
+			winner = gameBoardSate[0][0];
 		}
-		else if ( CurrentGameBoard[0][1] == CurrentGameBoard[1][1] && CurrentGameBoard[0][1] == CurrentGameBoard[2][1] &&  CurrentGameBoard[0][1] != 0 ) {
+		else if ( gameBoardSate[0][1] == gameBoardSate[1][1] && gameBoardSate[0][1] == gameBoardSate[2][1] &&  gameBoardSate[0][1] != 0 ) {
 			// Found a win: Down the middle
-			winner = CurrentGameBoard[0][1];
+			winner = gameBoardSate[0][1];
 		}
-		else if ( CurrentGameBoard[0][2] == CurrentGameBoard[1][2] && CurrentGameBoard[0][2] == CurrentGameBoard[2][2] &&  CurrentGameBoard[0][2] != 0 ) {
+		else if ( gameBoardSate[0][2] == gameBoardSate[1][2] && gameBoardSate[0][2] == gameBoardSate[2][2] &&  gameBoardSate[0][2] != 0 ) {
 			// Found a win: Down the right
-			winner = CurrentGameBoard[0][2];
+			winner = gameBoardSate[0][2];
 		}
-		else if ( CurrentGameBoard[0][0] == CurrentGameBoard[1][1] && CurrentGameBoard[0][0] == CurrentGameBoard[2][2] &&  CurrentGameBoard[0][0] != 0 ) {
+		else if ( gameBoardSate[0][0] == gameBoardSate[1][1] && gameBoardSate[0][0] == gameBoardSate[2][2] &&  gameBoardSate[0][0] != 0 ) {
 			// Found a win: Diagonally from left to right 
-			winner = CurrentGameBoard[0][0];
+			winner = gameBoardSate[0][0];
 		}
-		else if ( CurrentGameBoard[0][2] == CurrentGameBoard[1][1] && CurrentGameBoard[0][2] == CurrentGameBoard[2][0] &&  CurrentGameBoard[0][2] != 0 ) {
+		else if ( gameBoardSate[0][2] == gameBoardSate[1][1] && gameBoardSate[0][2] == gameBoardSate[2][0] &&  gameBoardSate[0][2] != 0 ) {
 			// Found a win: Diagonally from top left to bottom right 
-			winner = CurrentGameBoard[0][2];
+			winner = gameBoardSate[0][2];
 		}
 		else {
 			// No win found
@@ -627,10 +652,12 @@ public class TicTacToe {
 		
 		while(in.hasNext()) {
 			Board board = new Board(in.nextInt(), null);
-			board.setStats(in.nextInt(), in.nextInt(), in.nextInt());
+			board.setStats(in.nextInt(), in.nextInt(), in.nextInt(), in.nextInt());
 			DictionaryOfBoards.addNode(board.Serial, board);
-			hashEntries += 1;
+			hashEntries++;
 		}
+		
+		
 	}
 	
 	private void fileManagerDump () throws IOException {
@@ -647,24 +674,27 @@ public class TicTacToe {
 
 		System.out.println("Writing to file \"configs.txt\" please wait....");
 
-		try{
 			Writer output = null;
 			File file = new File("configs.txt");
 			output = new BufferedWriter(new FileWriter(file));
 
-			for (int i = 0; i < hashEntries; i++) {
-				Board boardToWrite = (Board) DictionaryOfBoards.getNexttoDump();
-				if (boardToWrite != null ) {
-					output.write(boardToWrite.Serial + " " + boardToWrite.Played + " " + boardToWrite.Wins + " " + boardToWrite.Losses + " ");
+			int newhashEntries = hashEntries;
+			
+			while (newhashEntries != 0) {
+				Board boardToWrite = null;
+				
+				if (newhashEntries != 0) {
+					boardToWrite = (Board) DictionaryOfBoards.getNexttoDump();
 				}
+				
+				if (boardToWrite != null) {
+					output.write(boardToWrite.Serial + " " + boardToWrite.Played + " " + boardToWrite.Wins + " " + boardToWrite.Losses + " " + boardToWrite.Weight + " ");
+					newhashEntries--;
+				}
+				
 			}
 			
 		output.close();
-		
-		}catch (Exception e){ //Catch exception if any
-			System.err.println("Error: " + e.getMessage());
-		}
-
 		System.out.println("Done Writing to \"configs.txt\"");
 	}
 

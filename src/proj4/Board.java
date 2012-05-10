@@ -2,53 +2,59 @@ package proj4;
 
 public class Board {
 
-	public Board (Comparable newSerial, int[][] newGameState ) {
+	public Board (long newSerial, int[][] newGameState ) {
 		GameState = newGameState;
 		Serial = newSerial;
-		Wins = 0;
-		Losses = 0;
-		Ties = 0;
-		Probability = 0;
-		Played = 0;
 	}
 	
 	public int[][] GameState;
-	public Comparable Serial;
-	public int Wins;
-	public int Losses;
-	public int Ties;
-	public double Probability;
-	public int Played;
+	public long Serial;
+	public int Wins = 0;
+	public int Losses = 0;
+	public int Ties = 0;
+	public double Probability = 0.00;
+	public int Played = 0;
+	public int Weight = 0;
 	
-	public void setStats (int played, int wins, int losses) {
+	public void setStats (int played, int wins, int losses, int weight) {
 		 
 		Played = played;
 		Wins = wins;
 		Losses = losses;
+		Weight = weight;
 		Ties = played - (wins + losses);
 		
-		Probability = ((double)Wins / (double)Played)*100;
+		double ratio = ( (double) Wins / (double) Played );
+		
+		Probability = ratio * 100;
 		
 	}
 	
 	public void updateProb(String WLT) {
 		 
 		if (WLT == "win") {
-			Wins += 1;
+			Wins++;
+			Played++;
+			Weight--;
 		}
 		else if (WLT == "lost") {
-			Losses += 1;
+			Losses++;
+			Played++;
+			Weight++;
 		}
 		else if (WLT == "tie") {
-			Ties += 1;
+			Ties++;
+			Played++;
 		}
 		else {
 			//invalid string passed
+			
+			System.out.println("bad String: WLT");
 		}
 		
-		Played = Wins + Losses;
+		double ratio = ( (double) Wins / (double) Played );
 		
-		Probability = ((double)Wins / (double)Played)*100;
+		Probability = ratio * 100;
 		
 	}
 }

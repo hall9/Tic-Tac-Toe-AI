@@ -8,11 +8,11 @@ public class ModuloAddressCalculator implements AddressCalculator {
 		range = newRange;
 	}
 
-	public int calculateAddress(Object element) {
+	public int calculateAddress(Comparable element) {
 
-		Integer inElement = (Integer) element;
+		Long inElement = (Long) element;
 
-		return inElement.intValue() % range;
+		return (int) (inElement.longValue() % range);
 	}
 
 }

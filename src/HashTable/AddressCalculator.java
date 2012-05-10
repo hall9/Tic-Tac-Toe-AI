@@ -6,6 +6,6 @@ public interface AddressCalculator {
 	 * address in the hash table.
 	 */
 		
-	public int calculateAddress(Object element);
+	public int calculateAddress(Comparable element);
 	
 }

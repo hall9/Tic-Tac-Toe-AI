@@ -21,6 +21,8 @@ public class HashTable {
 	private CollisionResolver collisionResolver = null;
 	
 	private int Size;
+	
+	private int overFlowSize;
 
 	public HashTable(AddressCalculator newAddressCalculator,
 			CollisionResolver newCollisionResolver, int newSize) {
@@ -28,7 +30,8 @@ public class HashTable {
 		collisionResolver = newCollisionResolver;
 		Size = newSize;
 		primaryArea = new Node[Size];
-		overflowArea = new Node[ nextPrime( Size / 2 ) ];
+		overFlowSize = nextPrime(Size/2);
+		overflowArea = new Node[ overFlowSize ];
 		makeEmpty();
 	}
 
@@ -42,13 +45,33 @@ public class HashTable {
 		int homeAddress = addressCalculator.calculateAddress(key);
 		int collided = 0;
 		boolean overFlow = false;
-		boolean collision = primaryArea[homeAddress] != null;
+		boolean collision = false;
+		
+		if (primaryArea[homeAddress] != null && findElement(key) == null) {
+			int c = key.compareTo(primaryArea[homeAddress].key);
+			
+			if (c != 0 ) {
+				collision = true;
+			}
+		}
 
 		int overFlowAddress = -1;
 		while (collision) {
 			overFlowAddress = collisionResolver.recalculateAddress(++collided,
-					homeAddress, nextPrime( Size / 2 ));
+					homeAddress, overFlowSize);
+			
+			//System.out.println( homeAddress +  "  "+ (homeAddress +  + (int)Math.pow(collided, 2.0) ) );
+			
 			collision = overflowArea[overFlowAddress] != null;
+			
+			if (overflowArea[overFlowAddress] != null) {
+				int c = key.compareTo(overflowArea[overFlowAddress].key);
+				
+				if (c == 0 ) {
+					collision = false;
+				}
+			}
+			
 			collisions += 1;
 			overFlow = true;
 		}
@@ -60,19 +83,56 @@ public class HashTable {
 			counter += 1;
 		}
 	}
+	
+	public void setNode (Comparable key, Object data) {
+		int homeAddress = addressCalculator.calculateAddress(key);
+		int collided = 0;
+		int overFlowAddress = collisionResolver.recalculateAddress(collided+1,
+				homeAddress, overFlowSize);
+		
+		boolean collision = false;
+		
+		if (primaryArea[homeAddress] != null) {
+			collision = primaryArea[homeAddress].data != data;
+		}
+
+	while (collision) {
+		overFlowAddress = collisionResolver.recalculateAddress(++collided,
+				homeAddress, overFlowSize);
+		if ( overflowArea[overFlowAddress] != null ) {
+			collision = overflowArea[overFlowAddress].data != data;
+		}
+	}
+	if (!collision) {
+		if (collided == 0) {
+			primaryArea[homeAddress] = null;
+		} else {
+			overflowArea[overFlowAddress] = null;
+		}
+	}
+	
+	addNode(key, data);
+		
+	}
 
 	public void removeNode(Comparable key, Object data) {
 		int homeAddress = addressCalculator.calculateAddress(key);
 		int collided = 0;
-		int overFlowAddress = collisionResolver.recalculateAddress(1,
-				homeAddress, nextPrime( Size / 2 ));
+		int overFlowAddress = collisionResolver.recalculateAddress(collided+1,
+				homeAddress, overFlowSize);
 
-		boolean collision = primaryArea[homeAddress].data != data;
+		boolean collision = false;
+			
+			if (primaryArea[homeAddress] != null) {
+				collision = primaryArea[homeAddress].data != data;
+			}
 
 		while (collision) {
-			overFlowAddress = collisionResolver.recalculateAddress(collided++,
-					homeAddress, nextPrime( Size / 2 ));
-			collision = overflowArea[overFlowAddress].data != data;
+			overFlowAddress = collisionResolver.recalculateAddress(++collided,
+					homeAddress, overFlowSize);
+			if ( overflowArea[overFlowAddress] != null ) {
+				collision = overflowArea[overFlowAddress].data != data;
+			}
 		}
 		if (!collision) {
 			if (collided == 0) {
@@ -112,8 +172,8 @@ public class HashTable {
 
 	private Object collisionSearch(Comparable key, int homeAddress, int collided) {
 		Object found = null;
-		int overFlowAddress = collisionResolver.recalculateAddress(collided++,
-				homeAddress, nextPrime( Size / 2 ));
+		int overFlowAddress = collisionResolver.recalculateAddress(collided,
+				homeAddress, overFlowSize);
 
 		if (overflowArea[overFlowAddress] != null) {
 			int c = key.compareTo(overflowArea[overFlowAddress].key);
@@ -121,7 +181,7 @@ public class HashTable {
 			if (c == 0) {
 				found = overflowArea[overFlowAddress].data;
 			} else {
-				collisionSearch(key, homeAddress, collided);
+				collisionSearch(key, homeAddress, ++collided);
 			}
 		}
 
@@ -172,42 +232,27 @@ public class HashTable {
 	 * PRIVATE ATTRIBUTES AND HELPER METHODS
 	 */
     
-    boolean overflowAreaDump = false;
     public Object getNexttoDump () {
     	Object nextObj = null;
     	int location = 0;
     	
-    	if (!overflowAreaDump && primaryArea.length != 0) {
-    		while(primaryArea[location] == null) {
+    	if (primaryArea.length != 0) {
+    		while(primaryArea[location] == null && location != Size) {
     			if (location + 1 < primaryArea.length  ) {
-    				location += 1;
+    				location++;
     			}
     		}
     		
     		if (primaryArea[location] != null) {
 				nextObj = primaryArea[location].data;
+				removeNode(primaryArea[location].key, primaryArea[location].data);
 				
-				primaryArea[location] = null;
+				location++;
 			}
-    	}
-    	
-    	if (overflowAreaDump && overflowArea.length != 0) {
-    		location = 0;
-    		while(overflowArea[location] == null) {
-    			if (location + 1 < overflowArea.length  ) {
-    				location += 1;
-    			}
-    		}
+    		else {
     		
-    		if (overflowArea[location] != null) {
-				nextObj = overflowArea[location].data;
-				overflowArea[location] = null;
-			}
+    		}
     	}
-    	
-    	if (location + 1 == primaryArea.length) {
-			overflowAreaDump = true;
-		}
     	
     	return nextObj;
     }

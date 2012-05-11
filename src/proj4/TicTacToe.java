@@ -46,6 +46,14 @@ public class TicTacToe {
 	int hashCollisions;
 	double hashPerFull;
 	
+	/**
+	 * This fucntion sets up the state of the hash table and deals with each game after they have finised. It updates
+	 * the stats on each board and updates the hash table
+	 * 
+	 * @param games number of games to play
+	 * @param flags -number of games, -h (history flag to print each move out), -s (save flag to save all the entries from the hash table into configs.txt), -p (possble moves flag this prints out the next moves within the hash table)
+	 * @throws IOException
+	 */
 	public void play (int games, String[] flags) throws IOException {
 		
 		boolean H = (Arrays.asList(flags).contains("h")) ? true : false; 
@@ -65,6 +73,7 @@ public class TicTacToe {
 		losses = 0;
 		DictionaryOfBoards.makeEmpty();
 		
+		// used to gett all the things within the configs.txt file and populate the hash table before the games start, only used if the save flag is active
 		if (S) {
 			fileManagerGrab();
 		}
@@ -77,6 +86,7 @@ public class TicTacToe {
 			String WLT = playing(1,H);
 			updateStats(H, WLT);
 			
+			// adding the new moves to the hash table
 			while (!Hashing.isEmpty()) {
 				Board NewlyHashed = Hashing.remove();
 				NewlyHashed.updateProb(WLT);
@@ -84,7 +94,7 @@ public class TicTacToe {
 					hashEntries++;
 			}
 			
-			
+			// updating the already hashed entries after a game has ened
 			for (int u = 0; u < HashedPlayed.size(); u++) {
 				Board playedBefore = HashedPlayed.get(u);
 				playedBefore.updateProb(WLT);
@@ -104,6 +114,12 @@ public class TicTacToe {
 		
 	}
 	
+	/**
+	 * 
+	 * @param n This is like a clock, its used to see whos turn it is
+	 * @param H History Flag
+	 * @return if the game was a win, loss, or tie
+	 */
 	private String playing (int n, boolean H) {
 
 		if ( n % 2 == 0 ) {
@@ -154,6 +170,11 @@ public class TicTacToe {
 		return WLT;
 	}
 	 
+	/**
+	 * 
+	 * @param H Hisrtoy flag
+	 * @param WLT 
+	 */
 	private void updateStats(boolean H, String WLT) {
 		 
 		if (WLT == "win") {
@@ -221,6 +242,10 @@ public class TicTacToe {
 		}
 	}
 	
+	/**
+	 * This fucntion just prints the current board out to the screen
+	 * 
+	 */
 	public void printBoard () {
 		printBoard (CurrentGameBoard);
 	}
@@ -275,6 +300,11 @@ public class TicTacToe {
 		System.out.println("");
 	}
 	
+	/**
+	 * this is the AI controller which does all the finding and the best moves
+	 * 
+	 * @return
+	 */
 	private Board AITurn () {
 		LinkedList<int[][]> possibleMoves = new LinkedList<int[][]>();
 		LinkedList<Board> preHashCheckedMoves = new LinkedList<Board>();
@@ -297,6 +327,11 @@ public class TicTacToe {
 		return BestMove;
 	}
 	
+	/**
+	 * This get the best move based on Probability and weights
+	 * 
+	 * @return best move to go
+	 */
 	private Board nextBestMove () {
 		Board BestMove = new Board(0, null);
 		int HashedNum = HashedBoards.size();
@@ -362,6 +397,11 @@ public class TicTacToe {
 		return BestMove; 
 	}
 	
+	/**
+	 * Check to see if the any of the moves given are in the hashtable
+	 * 
+	 * @param CheckedMoves
+	 */
 	private void checkHashed (LinkedList<Board> CheckedMoves) {
 		HashedBoards.clear();
 		NotHashedBoards.clear();

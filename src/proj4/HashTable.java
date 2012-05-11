@@ -25,6 +25,13 @@ public class HashTable {
 	
 	private int overFlowSize;
 
+	/**
+	 * Constructor for the hash table, craetes the arrays for the hash table
+	 * 
+	 * @param newAddressCalculator
+	 * @param newCollisionResolver
+	 * @param newSize
+	 */
 	public HashTable(AddressCalculator newAddressCalculator,
 			CollisionResolver newCollisionResolver, int newSize) {
 		addressCalculator = newAddressCalculator;
@@ -36,6 +43,12 @@ public class HashTable {
 		makeEmpty();
 	}
 
+	/**
+	 * To add a entry to the hash table
+	 * 
+	 * @param key
+	 * @param data
+	 */
 	public void addNode(Comparable key, Object data) {
 		/*
 		 * Add the object specified by the value parameter to the tree. The
@@ -85,6 +98,12 @@ public class HashTable {
 		}
 	}
 	
+	/**
+	 * To update a Node without deactiving it
+	 * 
+	 * @param key
+	 * @param data
+	 */
 	public void setNode (Comparable key, Object data) {
 		int homeAddress = addressCalculator.calculateAddress(key);
 		int collided = 0;
@@ -116,6 +135,12 @@ public class HashTable {
 		
 	}
 
+	/**
+	 * To remove an entry from the hash table
+	 * 
+	 * @param key
+	 * @param data
+	 */
 	public void removeNode(Comparable key, Object data) {
 		int homeAddress = addressCalculator.calculateAddress(key);
 		int collided = 0;
@@ -149,6 +174,12 @@ public class HashTable {
 		}
 	}
 
+	/**
+	 * To Find an element within the hash table
+	 * 
+	 * @param key
+	 * @return
+	 */
 	public Object findElement(Comparable key) {
 		/*
 		 * Locates the specified key value within the tree and returns the

@@ -15,6 +15,14 @@ public class Board {
 	public int Played = 0;
 	public int Weight = 0;
 	
+	/**
+	 * This fucntion is mainly used by the filegrab function in TicTacToe class, When reading the "configs.txt" it needs a way to se the stats
+	 * 
+	 * @param played
+	 * @param wins
+	 * @param losses
+	 * @param weight
+	 */
 	public void setStats (int played, int wins, int losses, int weight) {
 		 
 		Played = played;
@@ -29,6 +37,11 @@ public class Board {
 		
 	}
 	
+	/**
+	 * When called this updates the baord based on if it was a win, loss, or tie
+	 * 
+	 * @param WLT
+	 */
 	public void updateProb(String WLT) {
 		 
 		if (WLT == "win") {

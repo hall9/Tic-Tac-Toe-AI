@@ -1,0 +1,17 @@
+CMSC 341 Spring 2012
+
+Project 4 - Tic-Tac-Toe
+
+1. (2 points) How did you represent a board in your code?  Why did you choose this repesentation?
+
+
+2. (3 points) Describe the hash function you used.  
+How well does your hash function distribute the game boards in the hash table?  
+Provide an analysis of your hash table statistics to support your claim.
+
+
+3. (5 points) At some point your smart player will have to decide to choose a 
+previous move that has led to win or try a new move which may evetually lead to a 
+higher winning percentage. What criteria did you use to determine whether the smart 
+player should repeat a previous move or try a new move?
+How did changing this criteria affect the learning curve of the smart player.

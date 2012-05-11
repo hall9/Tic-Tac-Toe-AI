@@ -1,95 +1,94 @@
 <!--
 
-This is a sample Ant build file for CMSC 341 projects. Though the layout
-used by this build file works well with any project, it is particularly
-designed to play well with Eclipse defaults.
+    This is a sample Ant build file for CMSC 341 projects.  Though the layout
+    used by this build file works well with any project, it is particularly
+    designed to play well with Eclipse defaults.
 
 
-Directory Layout
-___________________________________________________________________________
+    Directory Layout
+    ___________________________________________________________________________
 
-This build file assumes that you are using Eclipse Ganymede's default
-directory structure for organizing Java projects. That directory structure
-is as follows...
+    This build file assumes that you are using Eclipse Ganymede's default
+    directory structure for organizing Java projects.  That directory structure
+    is as follows...
 
-Project Name/
-|- .classpath
-|- .project
-|- bin/
-`- src/
+        Project Name/
+        |- .classpath
+        |- .project
+        |- bin/
+        `- src/
 
-Detailed file information...
+    Detailed file information...
 
-.classpath - an interal Eclipse file, defines classpath & build info
-.project - an internal Eclipse file, defines metadata about project
-src/ - is the directory you create your source files in
-bin/ - is where Eclipse automatically compiles your files to (hidden
-in the normal Java perspective)
+        .classpath - an interal Eclipse file, defines classpath & build info
+        .project - an internal Eclipse file, defines metadata about project
+        src/ - is the directory you create your source files in
+        bin/ - is where Eclipse automatically compiles your files to (hidden
+               in the normal Java perspective)
 
-This ant file is setup to assume some additional resources...
+    This ant file is setup to assume some additional resources...
 
-Project Name/
-|- .classpath
-|- .project
-|- bin/
-|- build.xml
-|- doc/
-`- src/
+        Project Name/
+        |- .classpath
+        |- .project
+        |- bin/
+        |- build.xml
+        |- doc/
+        `- src/
 
-The additional files...
+    The additional files...
 
-build.xml - place this build file in the root of the project directory
-doc/ - where javadocs will get generated to (build file will create)
-
-
-Ant Properties
-___________________________________________________________________________
-
-This build file defines 4 properties...
-
-source.dir - the directory that source code is in (src/ is typically
-where Eclipse stores source files by default)
-build.dir - the directory that source code is compiled to (bin/ is
-typically where Eclipse stores class files by default)
-doc.dir - where javadoc generation will be built out to
-main.class - the fully qualified name (package + class name) of the
-class which should be used to run the program
+        build.xml - place this build file in the root of the project directory
+        doc/ - where javadocs will get generated to (build file will create)
 
 
-Ant Targets
-___________________________________________________________________________
+    Ant Properties
+    ___________________________________________________________________________
 
-This build file provides 5 targets...
+    This build file defines 4 properties...
 
-init - creates directories for class files (bin) and javadocs (doc)
-compile - compiles all source code from source directory (src) into the
-class files directory (bin)
-run - runs the class specified in the properties (see notes below)
-clean - utility target to remove class files (bin), javadocs (doc),
-and removes any removes any Emacs backup files (*~)
-doc - utility target to generate javadoc files (into doc) from the
-Java files in the source directory (src)
+         source.dir - the directory that source code is in (src/ is typically
+                      where Eclipse stores source files by default)
+         build.dir - the directory that source code is compiled to (bin/ is
+                     typically where Eclipse stores class files by default)
+         doc.dir - where javadoc generation will be built out to
+         main.class - the fully qualified name (package + class name) of the
+                      class which should be used to run the program
 
-Additional target notes...
 
-The default project is compile. That is, if you run ant with no
-arguments it will compile your source code. To run ant with a specific
-target give the name of the target on the command line, like so...
+    Ant Targets
+    ___________________________________________________________________________
 
-ant target_name
+    This build file provides 5 targets...
 
-The "run" target is designed to allow you to execute a given class.
-In order to pass in command line arguments to your program you must use
-the -Dargs flag. For example, to run the program and pass in a single
-command line argument of "commands.txt", you would type...
+        init - creates directories for class files (bin) and javadocs (doc)
+        compile - compiles all source code from source directory (src) into the
+                class files directory (bin)
+        run - runs the class specified in the properties (see notes below)
+        clean - utility target to remove class files (bin), javadocs (doc),
+                and removes any removes any Emacs backup files (*~)
+        doc - utility target to generate javadoc files (into doc) from the
+                Java files in the source directory (src)
 
-ant -Dargs="commands.txt" run
+    Additional target notes...
 
-See comments below for more information on each target.
+        The default project is compile.  That is, if you run ant with no
+        arguments it will compile your source code.  To run ant with a specific
+        target give the name of the target on the command line, like so...
 
-For more information on ant, see http://ant.apache.org/manual/.
+            ant target_name
 
-Update: D. Frey, 1/9/12 add debug to javac command
+        The "run" target is designed to allow you to execute a given class.
+        In order to pass in command line arguments to your program you must use
+        the -Dargs flag.  For example, to run the program and pass in a single
+        command line argument of "commands.txt", you would type...
+
+            ant -Dargs="commands.txt" run
+
+        See comments below for more information on each target.
+
+        For more information on ant, see http://ant.apache.org/manual/.
+
 -->
 <project name="Tic-Tac-Toe-AI" default="compile" basedir=".">
 
@@ -99,7 +98,6 @@ Update: D. Frey, 1/9/12 add debug to javac command
   
   <!-- global properties for this build file -->
   <property name="source.dir" location="src/proj4"/>
-  <property name="helperSource.dir" location="src/HashTable"/>
   <property name="build.dir" location="bin/proj4"/>
   <property name="doc.dir" location="doc/proj4"/>
   <property name="main.class" value="proj4/Proj4"/>
@@ -112,17 +110,17 @@ Update: D. Frey, 1/9/12 add debug to javac command
   
   <!-- Compile the java code in ${src.dir} into ${build.dir} -->
   <target name="compile" depends="init" description="compile java sources">
-    <javac srcdir="${source.dir}" destdir="${build.dir}" debug="true" debuglevel="lines,vars,source" includeantruntime="false"/>
+    <javac srcdir="${source.dir}" destdir="${build.dir}" includeantruntime="false"/>
   </target>
 
-  <!-- execute the program with the fully qualified name in ${build.dir} after compiling -->
+   <!-- execute the program with the fully qualified name in ${build.dir} after compiling -->
   <target name="run" description="run the project">
     <java classpath="${build.dir}" classname="${main.class}" fork="yes">
-     <arg line="${args}"/>
+    	<arg line="${args}"/>
     </java>
   </target>
 
-  <!-- Delete the build & doc directories and Emacs backup (*~) files -->
+   <!-- Delete the build & doc directories and Emacs backup (*~) files -->
   <target name="clean" description="tidy up the workspace">
     <delete dir="${build.dir}"/>
     <delete dir="${doc.dir}"/>
@@ -133,7 +131,7 @@ Update: D. Frey, 1/9/12 add debug to javac command
 
   <!-- Generate javadocs for current project into ${doc.dir} -->
   <target name="doc" depends="compile" description="generate documentation">
-    <javadoc sourcepath="${source.dir}" destdir="${doc.dir}" packagenames="*" sourcefiles="${source.dir}/Board.java,${source.dir}/Proj4.java,${source.dir}/TicTacToe.java,${helperSource.dir}/AddressCalculator.java,${helperSource.dir}/CollisionResolver.java,${helperSource.dir}/HashTable.java,${helperSource.dir}/ModuloAddressCalculator.java,${helperSource.dir}/Node.java,${helperSource.dir}/QuadraticCollisionResolver.java"/>
+    <javadoc sourcepath="${source.dir}" destdir="${doc.dir}" packagenames="*" sourcefiles="${source.dir}/Board.java,${source.dir}/Proj4.java,${source.dir}/TicTacToe.java,${source.dir}/AddressCalculator.java,${source.dir}/CollisionResolver.java,${source.dir}/HashTable.java,${source.dir}/ModuloAddressCalculator.java,${source.dir}/Node.java,${source.dir}/QuadraticCollisionResolver.java"/>
   </target>
 
 </project>

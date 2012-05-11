@@ -51,7 +51,7 @@ public class TicTacToe {
 		boolean H = (Arrays.asList(flags).contains("h")) ? true : false; 
 		boolean S = (Arrays.asList(flags).contains("s")) ? true : false; 
 		boolean D = (Arrays.asList(flags).contains("d")) ? true : false;
-		P = (Arrays.asList(flags).contains("P")) ? true : false;
+		P = (Arrays.asList(flags).contains("p")) ? true : false;
 		
 		hashSlots = 6967;
 		hashEntries = 0;

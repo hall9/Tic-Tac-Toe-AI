@@ -35,6 +35,14 @@ public class Proj4 {
 			else if (s.contains("-p") | s.contains("-p")) {
 				flags[3] = "p";
 			}
+			else {
+				try {
+					numGames = Integer.parseInt(s.replaceAll("[\\D]", ""));
+				  } catch (NumberFormatException e) {
+					  
+				  }
+
+			}
 		}
 		
 		TicTacToe Game = new TicTacToe();

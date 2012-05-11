@@ -1,4 +1,6 @@
-package HashTable;
+package proj4;
+
+import proj4.AddressCalculator;
 
 public class ModuloAddressCalculator implements AddressCalculator {
 

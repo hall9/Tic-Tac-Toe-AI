@@ -1,7 +1,8 @@
-package HashTable;
+package proj4;
 
-import HashTable.AddressCalculator;
-import HashTable.CollisionResolver;
+import proj4.AddressCalculator;
+import proj4.CollisionResolver;
+import proj4.Node;
 
 public class HashTable {
 	/*

@@ -1,5 +1,4 @@
 package proj4;
-
 public class Board {
 
 	public Board (long newSerial, int[][] newGameState ) {

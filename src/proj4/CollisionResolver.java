@@ -1,4 +1,4 @@
-package HashTable;
+package proj4;
 
 public interface CollisionResolver {
 

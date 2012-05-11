@@ -1,4 +1,8 @@
 package proj4;
+import proj4.Board;
+import proj4.HashTable;
+import proj4.ModuloAddressCalculator;
+import proj4.QuadraticCollisionResolver;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -9,11 +13,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.util.*;
-
-import HashTable.HashTable;
-import HashTable.ModuloAddressCalculator;
-import HashTable.QuadraticCollisionResolver;
-import proj4.Board;
 
 public class TicTacToe {
 

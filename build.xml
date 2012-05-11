@@ -116,7 +116,7 @@ Update: D. Frey, 1/9/12 add debug to javac command
   </target>
 
   <!-- execute the program with the fully qualified name in ${build.dir} after compiling -->
-  <target name="run" depends="compile" description="run the project">
+  <target name="run" description="run the project">
     <java classpath="${build.dir}" classname="${main.class}" fork="yes">
      <arg line="${args}"/>
     </java>

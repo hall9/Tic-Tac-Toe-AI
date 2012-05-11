@@ -27,4 +27,17 @@ How to Play
 * "-s" Save Flag: The program will save the seen moves/configurations to a file named 'configs.txt'
 * "-d" Display Flag: The program will display a GUI, in which the user may interact with the AI.
 * "-number" Number of Games Flag: The program will play a specified number of games then exit. Otherwise the program will only play one game. 
- 
+* "-p" Possbile Moves Flag: This will print out each move that has been seen before (in the hash table), read the "P4Answers.pdf" question two more an example
+
+
+
+P4Questions/Extra Credit
+------------
+P4Questions have been answered in "P4Answers.pdf"
+Extra Credit (questions 2,4) are in "hall9.pdf"
+
+
+
+Configs.txt
+------------
+This file hold the saved entires from the hash table only when the save flag is active

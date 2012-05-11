@@ -1,3 +1,8 @@
+# Project 4 Tic-Tac-Toe-AI #
+############################
+*.docx
+configs.txt
+
 # Compiled source #
 ###################
 *.com

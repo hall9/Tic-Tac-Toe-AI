@@ -1,4 +1,5 @@
 package proj4;
+import java.security.SecureRandom;
 import proj4.Board;
 import proj4.HashTable;
 import proj4.ModuloAddressCalculator;
@@ -437,7 +438,7 @@ public class TicTacToe {
 	}
 	
 	private int randomNumber (int n) {
-		Random generator = new Random();
+		Random generator = new SecureRandom();
 		
 		int randomIndex = generator.nextInt( n );
 		

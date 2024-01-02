@@ -1,4 +1,5 @@
 package proj4;
+import java.nio.file.Files;
 import java.security.SecureRandom;
 import proj4.Board;
 import proj4.HashTable;
@@ -716,7 +717,7 @@ public class TicTacToe {
 
 			Writer output = null;
 			File file = new File("configs.txt");
-			output = new BufferedWriter(new FileWriter(file));
+			output = Files.newBufferedWriter(file.toPath());
 
 			int newhashEntries = hashEntries;
 			

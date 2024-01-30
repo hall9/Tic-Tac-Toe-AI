@@ -527,13 +527,13 @@ public class TicTacToe {
 			for (int k = 0; k < 3; k++) {
 				tempString = Integer.toBinaryString(temp[i][k]);
 				
-				if (tempString.equals("0")) {
+				if ("0".equals(tempString)) {
 					serial = serial + "00";
 				}
-				else if (tempString.equals("10")) {
+				else if ("10".equals(tempString)) {
 					serial = serial + "10";
 				}
-				else if (tempString.equals("1")) {
+				else if ("1".equals(tempString)) {
 					serial = serial + "01";
 				}
 			}
